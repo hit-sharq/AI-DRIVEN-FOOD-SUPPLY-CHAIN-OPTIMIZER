@@ -1,0 +1,3 @@
+# Placeholder for TensorFlow Lite Shelf-Life Prediction Model
+# This file will be replaced with the actual .tflite model after training
+# For development, we can use a dummy model or simulate predictions

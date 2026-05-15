@@ -76,14 +76,15 @@ To transform post-harvest food loss into profitable, sustainable transactions th
 
 ## Current Status (as of 2026-05-15)
 - Project structure created: ai_models, backend, frontend, docs directories
-- Backend: Initialized Node.js/Express server with basic routes and middleware
+- Backend: Initialized Node.js/Express server with basic routes and middleware, file upload handling, and shelf-life prediction endpoint (simulated)
 - Frontend: Initialized React/Vite app with basic structure
 - Documentation: Created PROJECT_DOC.md and updated READMEs in frontend/backend
 - Immediate next steps:
-  a. Set up development environment (Flutter installation issues need resolution)
-  b. Implement computer vision model for shelf-life prediction
+  a. Set up development environment (Flutter installation issues need resolution - consider using React Native for web/mobile)
+  b. Implement computer vision model for shelf-life prediction (replace simulated with actual TensorFlow Lite model)
   c. Design database schema for vendors, inventory, transactions
-  d. Create API endpoints for core features
+  d. Create API endpoints for core features (dynamic pricing, B2B marketplace, analytics)
+  e. Connect frontend to backend APIs
 
 ---
 *Last Updated: 2026-05-15T11:16:50+03:00*
