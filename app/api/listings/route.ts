@@ -47,9 +47,9 @@ export async function POST(req: NextRequest) {
             vendor: {
               select: {
                 id: true,
-                name: true,
+                email: true,
                 location: true,
-                contactEmail: true,
+                businessName: true,
               },
             },
           },
@@ -102,9 +102,9 @@ export async function GET(req: NextRequest) {
             vendor: {
               select: {
                 id: true,
-                name: true,
+                email: true,
                 location: true,
-                contactEmail: true,
+                businessName: true,
               },
             },
           },

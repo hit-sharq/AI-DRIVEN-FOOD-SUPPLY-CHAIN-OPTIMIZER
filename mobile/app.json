@@ -9,14 +9,19 @@
     "scheme": "foodoptim",
     "extra": {
       "clerkPublishableKey": "pk_test_c2luZ3VsYXItc3RpbmtidWctNDEuY2xlcmsuYWNjb3VudHMuZGV2JA",
-      "apiUrl": "http://localhost:3000"
+      "apiUrl": "http://localhost:3000",
+      "eas": {
+        "projectId": "9d0c52a0-0c46-41b8-9116-9d17c5a07ecb"
+      }
     },
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTabletMode": true,
       "bundleIdentifier": "com.foodoptim.mobile"
@@ -26,15 +31,28 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.foodoptim.mobile"
+      "package": "com.foodoptim.mobile",
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.CAMERA"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      ["@clerk/expo"],
-      ["expo-image-picker", {}],
-      ["expo-camera", {}]
-    ]
+      [
+        "@clerk/expo"
+      ],
+      [
+        "expo-image-picker",
+        {}
+      ],
+      [
+        "expo-camera",
+        {}
+      ]
+    ],
+    "owner": "hit-sharq"
   }
 }
