@@ -1,9 +1,9 @@
-const fs = require('fs')
-const { join } = require('path')
-const { createRequire } = require('module')
-const require = createRequire(import.meta.url)
+import { fileURLToPath } from 'url'
+import { dirname, join } from 'path'
+import { existsSync, lstatSync, mkdirSync, readdirSync, renameSync, symlinkSync, unlinkSync } from 'fs'
 
-const { mkdirSync, lstatSync, readdirSync, symlinkSync, renameSync, unlinkSync, existsSync } = fs
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 function resolveProjectRoot(startDir) {
   let dir = startDir
