@@ -2,7 +2,7 @@
   "name": "ai-driven-food-supply-chain-optimizer",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate ; next build",
     "start": "next start",
     "lint": "eslint .",
     "postinstall": "prisma generate"
