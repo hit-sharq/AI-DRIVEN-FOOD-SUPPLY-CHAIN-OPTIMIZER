@@ -1,5 +1,6 @@
-import { useUser } from '@clerk/clerk-react-native'
+import { useUser } from '@clerk/expo'
 import { useEffect, useState } from 'react'
+import { useRouter } from 'expo-router'
 import {
   View,
   Text,
@@ -7,29 +8,50 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native'
-import { useRouter } from 'expo-router'
+import api from '../../lib/api'
+
+interface Stats {
+  products: number
+  listings: number
+  wasteReduced: number
+  revenue: number
+}
 
 export default function DashboardScreen() {
   const { user } = useUser()
   const router = useRouter()
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<Stats>({
     products: 0,
     listings: 0,
     wasteReduced: 0,
     revenue: 0,
   })
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Fetch vendor stats
-    // For now, using mock data
-    setStats({
-      products: 12,
-      listings: 5,
-      wasteReduced: 250,
-      revenue: 5000,
-    })
+    fetchStats()
   }, [])
+
+  const fetchStats = async () => {
+    try {
+      const [productsRes, listingsRes] = await Promise.all([
+        api.get('/products'),
+        api.get('/listings'),
+      ])
+      setStats({
+        products: productsRes.data.length || 0,
+        listings: listingsRes.data.length || 0,
+        wasteReduced: 0,
+        revenue: 0,
+      })
+    } catch (error) {
+      console.error('Error fetching stats:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const quickActions = [
     {
@@ -59,24 +81,28 @@ export default function DashboardScreen() {
         </View>
 
         {/* Stats Grid */}
-        <View style={styles.statsGrid}>
-          <View style={styles.statCard}>
-            <Text style={styles.statValue}>{stats.products}</Text>
-            <Text style={styles.statLabel}>Products</Text>
+        {loading ? (
+          <ActivityIndicator size="large" color="#2563eb" style={styles.loader} />
+        ) : (
+          <View style={styles.statsGrid}>
+            <View style={styles.statCard}>
+              <Text style={styles.statValue}>{stats.products}</Text>
+              <Text style={styles.statLabel}>Products</Text>
+            </View>
+            <View style={styles.statCard}>
+              <Text style={styles.statValue}>{stats.listings}</Text>
+              <Text style={styles.statLabel}>Listings</Text>
+            </View>
+            <View style={styles.statCard}>
+              <Text style={styles.statValue}>{stats.wasteReduced}</Text>
+              <Text style={styles.statLabel}>Waste (kg)</Text>
+            </View>
+            <View style={styles.statCard}>
+              <Text style={styles.statValue}>${stats.revenue}</Text>
+              <Text style={styles.statLabel}>Revenue</Text>
+            </View>
           </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statValue}>{stats.listings}</Text>
-            <Text style={styles.statLabel}>Listings</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statValue}>{stats.wasteReduced}</Text>
-            <Text style={styles.statLabel}>Waste (kg)</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statValue}>${stats.revenue}</Text>
-            <Text style={styles.statLabel}>Revenue</Text>
-          </View>
-        </View>
+        )}
 
         {/* Quick Actions */}
         <View style={styles.section}>
@@ -119,6 +145,9 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 28,
     fontWeight: 'bold',
+  },
+  loader: {
+    marginTop: 32,
   },
   statsGrid: {
     flexDirection: 'row',

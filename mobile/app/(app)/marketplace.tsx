@@ -8,82 +8,128 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  FlatList,
 } from 'react-native'
-import axios from 'axios'
+import api from '../../lib/api'
+
+interface Vendor {
+  id: string
+  businessName: string
+  location: string
+}
+
+interface Product {
+  id: string
+  name: string
+  category: string
+  unit: string
+}
 
 interface Listing {
   id: string
   quantity: number
   pricePerUnit: number
-  product: {
-    name: string
-    category: string
-    unit: string
-    vendor: {
-      name: string
-      location: string
-    }
-  }
+  surplus: boolean
+  status: string
+  product: Product
+  vendor: Vendor
+}
+
+interface Prediction {
+  id: string
+  shelfLife: number | null
+  quality: string | null
+  confidence: number | null
+  product: Product
+  createdAt: string
 }
 
 export default function MarketplaceScreen() {
   const [listings, setListings] = useState<Listing[]>([])
+  const [predictions, setPredictions] = useState<Prediction[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
-  const [category, setCategory] = useState('')
-
-  const categories = ['Vegetables', 'Fruits', 'Grains', 'Dairy', 'Other']
+  const [filterExpiring, setFilterExpiring] = useState(false)
+  const [tab, setTab] = useState<'listings' | 'predictions'>('listings')
 
   useEffect(() => {
-    fetchListings()
-  }, [category])
+    fetchData()
+  }, [])
 
-  const fetchListings = async () => {
+  const fetchData = async () => {
     try {
-      setLoading(true)
-      // Mock data for now
-      setListings([
-        {
-          id: '1',
-          quantity: 100,
-          pricePerUnit: 2.5,
-          product: {
-            name: 'Fresh Tomatoes',
-            category: 'Vegetables',
-            unit: 'kg',
-            vendor: {
-              name: 'Green Farm Co.',
-              location: 'Nairobi',
-            },
-          },
-        },
-        {
-          id: '2',
-          quantity: 50,
-          pricePerUnit: 3.0,
-          product: {
-            name: 'Bananas',
-            category: 'Fruits',
-            unit: 'kg',
-            vendor: {
-              name: 'Tropical Farms',
-              location: 'Kisumu',
-            },
-          },
-        },
+      const [listingsRes, predictionsRes] = await Promise.all([
+        api.get('/listings'),
+        api.get('/predictions'),
       ])
+      const activeListings = listingsRes.data.filter(
+        (l: Listing) => l.status === 'ACTIVE'
+      )
+      setListings(activeListings)
+      setPredictions(predictionsRes.data)
     } catch (error) {
-      console.error('Error fetching listings:', error)
+      console.error('Error fetching data:', error)
     } finally {
       setLoading(false)
     }
   }
 
-  const filteredListings = listings.filter(
-    (listing) =>
-      listing.product.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      (!category || listing.product.category === category)
+  const filteredListings = listings.filter((l) =>
+    l.product.name.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
+  const filteredPredictions = predictions.filter((p) =>
+    (p.product?.name ?? '').toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
+  const expiringPredictions = predictions.filter(
+    (p) => p.shelfLife !== null && p.shelfLife < 3
+  )
+
+  const displayListings = filterExpiring
+    ? filteredListings.slice(0, 5)
+    : filteredListings
+  const displayPredictions = filterExpiring
+    ? expiringPredictions
+    : filteredPredictions
+
+  const ListingCard = ({ listing }: { listing: Listing }) => (
+    <View style={styles.listItem}>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.itemName}>{listing.product.name}</Text>
+        <Text style={styles.itemMeta}>
+          {listing.vendor.businessName} · {listing.vendor.location}
+        </Text>
+        <Text style={styles.itemDetail}>
+          {listing.quantity} {listing.product.unit} @ ${listing.pricePerUnit.toFixed(2)}
+          {listing.surplus && ' · Surplus'}
+        </Text>
+      </View>
+      <View style={styles.badge}>
+        <Text style={styles.badgeText}>{listing.status}</Text>
+      </View>
+    </View>
+  )
+
+  const PredictionCard = ({ prediction }: { prediction: Prediction }) => (
+    <View style={styles.listItem}>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.itemName}>{prediction.product?.name ?? 'Unknown'}</Text>
+        <Text style={styles.itemMeta}>
+          {new Date(prediction.createdAt).toLocaleDateString()}
+        </Text>
+        <Text style={styles.itemDetail}>
+          Shelf life: {prediction.shelfLife !== null ? `${prediction.shelfLife} days` : 'N/A'} ·{' '}
+          Quality: {prediction.quality ?? 'N/A'}
+        </Text>
+      </View>
+      <View style={[styles.badge, { backgroundColor: '#dcfce7' }]}>
+        <Text style={[styles.badgeText, { color: '#16a34a' }]}>
+          {prediction.confidence !== null
+            ? `${Math.round(prediction.confidence * 100)}%`
+            : '—'}
+        </Text>
+      </View>
+    </View>
   )
 
   return (
@@ -92,78 +138,70 @@ export default function MarketplaceScreen() {
         <Text style={styles.title}>Marketplace</Text>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.content}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 32 }}
+      >
+        {/* Tabs */}
+        <View style={styles.tabRow}>
+          {(['listings', 'predictions'] as const).map((t) => (
+            <TouchableOpacity
+              key={t}
+              style={[styles.tab, tab === t && styles.tabActive]}
+              onPress={() => setTab(t)}
+            >
+              <Text
+                style={[
+                  styles.tabText,
+                  tab === t && styles.tabTextActive,
+                ]}
+              >
+                {t === 'listings' ? `Listings (${filteredListings.length})` : `Predictions (${filteredPredictions.length})`}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
         {/* Search */}
         <View style={styles.searchContainer}>
           <TextInput
             style={styles.searchInput}
-            placeholder="Search products..."
+            placeholder="Search..."
             value={searchTerm}
             onChangeText={setSearchTerm}
           />
         </View>
 
-        {/* Category Filter */}
-        <View style={styles.categorySection}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.categoryScroll}
+        {/* Filter */}
+        <TouchableOpacity
+          style={[styles.filterBtn, filterExpiring && styles.filterBtnActive]}
+          onPress={() => setFilterExpiring(!filterExpiring)}
+        >
+          <Text
+            style={[styles.filterText, filterExpiring && styles.filterTextActive]}
           >
-            {categories.map((cat) => (
-              <TouchableOpacity
-                key={cat}
-                style={[
-                  styles.categoryButton,
-                  category === cat && styles.categoryButtonActive,
-                ]}
-                onPress={() => setCategory(cat === category ? '' : cat)}
-              >
-                <Text
-                  style={[
-                    styles.categoryText,
-                    category === cat && styles.categoryTextActive,
-                  ]}
-                >
-                  {cat}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
+            {filterExpiring ? 'Showing: first 5 listings' : 'Show all'}
+          </Text>
+        </TouchableOpacity>
 
-        {/* Listings */}
+        {/* Content */}
         {loading ? (
           <ActivityIndicator size="large" color="#2563eb" style={styles.loader} />
-        ) : filteredListings.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>No listings found</Text>
-          </View>
+        ) : tab === 'listings' ? (
+          displayListings.length === 0 ? (
+            <Text style={styles.empty}>No listings available</Text>
+          ) : (
+            displayListings.map((listing) => (
+              <ListingCard key={listing.id} listing={listing} />
+            ))
+          )
+        ) : displayPredictions.length === 0 ? (
+          <Text style={styles.empty}>No predictions yet</Text>
         ) : (
-          <View style={styles.listingsContainer}>
-            {filteredListings.map((listing) => (
-              <TouchableOpacity key={listing.id} style={styles.listingCard}>
-                <View>
-                  <Text style={styles.productName}>{listing.product.name}</Text>
-                  <Text style={styles.vendorName}>
-                    {listing.product.vendor.name}
-                  </Text>
-                  <Text style={styles.location}>
-                    📍 {listing.product.vendor.location}
-                  </Text>
-                </View>
-                <View style={styles.priceSection}>
-                  <Text style={styles.price}>
-                    ${listing.pricePerUnit.toFixed(2)}
-                  </Text>
-                  <Text style={styles.unit}>per {listing.product.unit}</Text>
-                  <Text style={styles.available}>
-                    {listing.quantity} {listing.product.unit}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
+          displayPredictions.map((prediction) => (
+            <PredictionCard key={prediction.id} prediction={prediction} />
+          ))
         )}
       </ScrollView>
     </SafeAreaView>
@@ -190,8 +228,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 16,
   },
+  tabRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 12,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: '#f3f4f6',
+    alignItems: 'center',
+  },
+  tabActive: {
+    backgroundColor: '#2563eb',
+  },
+  tabText: {
+    fontSize: 13,
+    color: '#666',
+    fontWeight: '500',
+  },
+  tabTextActive: {
+    color: '#fff',
+  },
   searchContainer: {
-    marginBottom: 16,
+    marginBottom: 12,
   },
   searchInput: {
     backgroundColor: '#f3f4f6',
@@ -200,83 +261,67 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 14,
   },
-  categorySection: {
+  filterBtn: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: '#f3f4f6',
     marginBottom: 16,
   },
-  categoryScroll: {
-    flexGrow: 0,
+  filterBtnActive: {
+    backgroundColor: '#dbeafe',
   },
-  categoryButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#f3f4f6',
-    marginRight: 8,
-  },
-  categoryButtonActive: {
-    backgroundColor: '#2563eb',
-  },
-  categoryText: {
-    fontSize: 14,
+  filterText: {
+    fontSize: 13,
     color: '#666',
   },
-  categoryTextActive: {
-    color: '#fff',
+  filterTextActive: {
+    color: '#2563eb',
+    fontWeight: '600',
   },
   loader: {
     marginTop: 32,
   },
-  emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 32,
-  },
-  emptyText: {
-    fontSize: 16,
+  empty: {
+    textAlign: 'center',
     color: '#666',
+    marginTop: 48,
+    fontSize: 16,
   },
-  listingsContainer: {
-    marginBottom: 16,
-  },
-  listingCard: {
+  listItem: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    alignItems: 'center',
     backgroundColor: '#f9fafb',
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    padding: 14,
+    marginBottom: 8,
     borderWidth: 1,
     borderColor: '#e5e7eb',
   },
-  productName: {
-    fontSize: 16,
+  itemName: {
+    fontSize: 15,
     fontWeight: '600',
     marginBottom: 4,
   },
-  vendorName: {
-    fontSize: 14,
+  itemMeta: {
+    fontSize: 13,
     color: '#666',
     marginBottom: 2,
   },
-  location: {
+  itemDetail: {
     fontSize: 12,
     color: '#999',
   },
-  priceSection: {
-    alignItems: 'flex-end',
+  badge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    backgroundColor: '#e5e7eb',
   },
-  price: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#2563eb',
-  },
-  unit: {
+  badgeText: {
     fontSize: 12,
-    color: '#666',
-  },
-  available: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 4,
+    fontWeight: '600',
+    color: '#374151',
   },
 })

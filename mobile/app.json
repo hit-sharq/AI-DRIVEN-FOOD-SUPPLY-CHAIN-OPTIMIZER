@@ -6,6 +6,11 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "scheme": "foodoptim",
+    "extra": {
+      "clerkPublishableKey": "pk_test_c2luZ3VsYXItc3RpbmtidWctNDEuY2xlcmsuYWNjb3VudHMuZGV2JA",
+      "apiUrl": "http://localhost:3000"
+    },
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -27,6 +32,7 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      ["@clerk/expo"],
       ["expo-image-picker", {}],
       ["expo-camera", {}]
     ]

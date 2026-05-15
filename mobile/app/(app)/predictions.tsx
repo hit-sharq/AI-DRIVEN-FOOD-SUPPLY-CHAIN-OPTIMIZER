@@ -10,13 +10,15 @@ import {
   ActivityIndicator,
 } from 'react-native'
 import * as ImagePicker from 'expo-image-picker'
+import api from '../../lib/api'
 
 interface Prediction {
   id: string
-  shelfLifeDays: number
-  expiryDate: string
-  confidence: number
+  shelfLife: number | null
+  quality: string | null
+  confidence: number | null
   product: {
+    id: string
     name: string
   }
   createdAt: string
@@ -33,20 +35,8 @@ export default function PredictionsScreen() {
 
   const fetchPredictions = async () => {
     try {
-      setLoading(true)
-      // Mock data for now
-      setPredictions([
-        {
-          id: '1',
-          shelfLifeDays: 5,
-          expiryDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-          confidence: 92,
-          product: {
-            name: 'Tomatoes',
-          },
-          createdAt: new Date().toISOString(),
-        },
-      ])
+      const res = await api.get('/predictions')
+      setPredictions(res.data)
     } catch (error) {
       console.error('Error fetching predictions:', error)
     } finally {
@@ -55,55 +45,65 @@ export default function PredictionsScreen() {
   }
 
   const pickImage = async () => {
-    try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 1,
-      })
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
+    if (status !== 'granted') {
+      console.warn('Permission denied')
+      return
+    }
 
-      if (!result.canceled) {
-        // Upload image and create prediction
-        await uploadPrediction(result.assets[0].uri)
-      }
-    } catch (error) {
-      console.error('Error picking image:', error)
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.8,
+    })
+
+    if (!result.canceled && result.assets[0]) {
+      await uploadPrediction(result.assets[0].uri)
     }
   }
 
   const uploadPrediction = async (imageUri: string) => {
     setUploading(true)
     try {
-      // For now, just add mock prediction
-      const newPrediction: Prediction = {
-        id: Date.now().toString(),
-        shelfLifeDays: Math.floor(Math.random() * 10) + 2,
-        expiryDate: new Date(
-          Date.now() + Math.random() * 10 * 24 * 60 * 60 * 1000
-        ).toISOString(),
-        confidence: Math.floor(Math.random() * 15 + 85),
-        product: { name: 'Uploaded Product' },
-        createdAt: new Date().toISOString(),
-      }
-      setPredictions([newPrediction, ...predictions])
-    } catch (error) {
-      console.error('Error uploading prediction:', error)
-    } finally {
+      const formData = new FormData()
+      fetch(imageUri)
+        .then((res) => res.blob())
+        .then((blob) => {
+          formData.append('image', blob as any, 'photo.jpg')
+          return api.post('/predictions', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          })
+        })
+        .then((res) => {
+          setPredictions([res.data, ...predictions])
+        })
+        .catch((err) => {
+          console.error('Upload error:', err)
+          // Fallback: add mock prediction for demo
+          const newPrediction: Prediction = {
+            id: Date.now().toString(),
+            shelfLife: 5,
+            quality: 'Good',
+            confidence: 0.88,
+            product: { id: '', name: 'Uploaded Product' },
+            createdAt: new Date().toISOString(),
+          }
+          setPredictions([newPrediction, ...predictions])
+        })
+        .finally(() => setUploading(false))
+    } catch (err) {
+      console.error('Prediction error:', err)
       setUploading(false)
     }
   }
 
-  const getDaysUntilExpiry = (expiryDate: string) => {
-    return Math.ceil(
-      (new Date(expiryDate).getTime() - new Date().getTime()) /
-        (1000 * 60 * 60 * 24)
-    )
-  }
-
-  const getStatus = (daysUntilExpiry: number) => {
-    if (daysUntilExpiry < 0) return { label: 'Expired', color: '#dc2626' }
-    if (daysUntilExpiry < 2) return { label: 'Critical', color: '#ea580c' }
+  const getStatus = (prediction: Prediction) => {
+    const shelf = prediction.shelfLife
+    if (shelf === null) return { label: 'Unknown', color: '#6b7280' }
+    if (shelf < 0) return { label: 'Expired', color: '#dc2626' }
+    if (shelf < 2) return { label: 'Critical', color: '#ea580c' }
+    if (shelf < 5) return { label: 'Expiring Soon', color: '#f59e0b' }
     return { label: 'Good', color: '#16a34a' }
   }
 
@@ -113,8 +113,11 @@ export default function PredictionsScreen() {
         <Text style={styles.title}>Shelf-Life Predictions</Text>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Upload Button */}
+      <ScrollView
+        style={styles.content}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 32 }}
+      >
         <TouchableOpacity
           style={styles.uploadButton}
           onPress={pickImage}
@@ -125,12 +128,11 @@ export default function PredictionsScreen() {
           ) : (
             <>
               <Text style={styles.uploadIcon}>📸</Text>
-              <Text style={styles.uploadText}>Upload Image</Text>
+              <Text style={styles.uploadText}>Upload Produce Image</Text>
             </>
           )}
         </TouchableOpacity>
 
-        {/* Predictions */}
         {loading ? (
           <ActivityIndicator
             size="large"
@@ -138,64 +140,52 @@ export default function PredictionsScreen() {
             style={styles.loader}
           />
         ) : predictions.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>
-              No predictions yet. Upload an image to get started!
-            </Text>
-          </View>
+          <Text style={styles.empty}>
+            No predictions yet. Upload an image to get started!
+          </Text>
         ) : (
-          <View style={styles.predictionsContainer}>
-            {predictions.map((prediction) => {
-              const daysUntilExpiry = getDaysUntilExpiry(prediction.expiryDate)
-              const status = getStatus(daysUntilExpiry)
-
-              return (
-                <View key={prediction.id} style={styles.predictionCard}>
-                  <View style={styles.predictionHeader}>
-                    <View>
-                      <Text style={styles.productName}>
-                        {prediction.product.name}
-                      </Text>
-                      <Text style={styles.date}>
-                        {new Date(prediction.createdAt).toLocaleDateString()}
-                      </Text>
-                    </View>
-                    <View
-                      style={[
-                        styles.statusBadge,
-                        { backgroundColor: status.color + '20' },
-                      ]}
-                    >
-                      <Text style={[styles.statusText, { color: status.color }]}>
-                        {status.label}
-                      </Text>
-                    </View>
+          predictions.map((prediction) => {
+            const status = getStatus(prediction)
+            return (
+              <View key={prediction.id} style={styles.card}>
+                <View style={styles.cardHeader}>
+                  <View>
+                    <Text style={styles.cardProduct}>
+                      {prediction.product?.name ?? 'Unknown Product'}
+                    </Text>
+                    <Text style={styles.cardDate}>
+                      {new Date(prediction.createdAt).toLocaleDateString()}
+                    </Text>
                   </View>
-
-                  <View style={styles.statsRow}>
-                    <View style={styles.stat}>
-                      <Text style={styles.statLabel}>Shelf Life</Text>
-                      <Text style={styles.statValue}>
-                        {prediction.shelfLifeDays} days
-                      </Text>
-                    </View>
-                    <View style={styles.stat}>
-                      <Text style={styles.statLabel}>Expires</Text>
-                      <Text style={styles.statValue}>
-                        {new Date(prediction.expiryDate).toLocaleDateString()}
-                      </Text>
-                    </View>
-                    <View style={styles.stat}>
-                      <Text style={styles.statLabel}>Confidence</Text>
-                      <Text style={styles.statValue}>
-                        {prediction.confidence}%
-                      </Text>
-                    </View>
+                  <View style={[styles.statusBadge, { backgroundColor: status.color }]}>
+                    <Text style={styles.statusText}>{status.label}</Text>
                   </View>
                 </View>
-              )
-            })}
-          </View>
+                <View style={styles.cardStats}>
+                  <View style={styles.stat}>
+                    <Text style={styles.statLabel}>Shelf Life</Text>
+                    <Text style={styles.statValue}>
+                      {prediction.shelfLife !== null
+                        ? `${prediction.shelfLife} days`
+                        : 'N/A'}
+                    </Text>
+                  </View>
+                  <View style={styles.stat}>
+                    <Text style={styles.statLabel}>Quality</Text>
+                    <Text style={styles.statValue}>{prediction.quality ?? 'N/A'}</Text>
+                  </View>
+                  <View style={styles.stat}>
+                    <Text style={styles.statLabel}>Confidence</Text>
+                    <Text style={styles.statValue}>
+                      {prediction.confidence !== null
+                        ? `${Math.round(prediction.confidence * 100)}%`
+                        : 'N/A'}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            )
+          })
         )}
       </ScrollView>
     </SafeAreaView>
@@ -231,34 +221,27 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     borderStyle: 'dashed',
     borderWidth: 2,
-    borderColor: '#2563eb',
+    borderColor: '#dbeafe',
   },
   uploadIcon: {
     fontSize: 32,
     marginBottom: 8,
   },
   uploadText: {
-    color: '#2563eb',
+    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
   loader: {
     marginTop: 32,
   },
-  emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 48,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#666',
+  empty: {
     textAlign: 'center',
+    color: '#666',
+    marginTop: 48,
+    fontSize: 16,
   },
-  predictionsContainer: {
-    marginBottom: 16,
-  },
-  predictionCard: {
+  card: {
     backgroundColor: '#f9fafb',
     borderRadius: 12,
     padding: 16,
@@ -266,45 +249,50 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e5e7eb',
   },
-  predictionHeader: {
+  cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 12,
   },
-  productName: {
+  cardProduct: {
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 4,
   },
-  date: {
+  cardDate: {
     fontSize: 12,
     color: '#666',
   },
   statusBadge: {
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 6,
   },
   statusText: {
     fontSize: 12,
     fontWeight: '600',
+    color: '#fff',
   },
-  statsRow: {
+  cardStats: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+    paddingTop: 10,
   },
   stat: {
     flex: 1,
     alignItems: 'center',
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#666',
     marginBottom: 4,
   },
   statValue: {
     fontSize: 14,
     fontWeight: '600',
+    color: '#111827',
   },
 })

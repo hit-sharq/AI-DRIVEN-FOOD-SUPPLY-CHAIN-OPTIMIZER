@@ -1,4 +1,4 @@
-import { useUser, useClerk } from '@clerk/clerk-react-native'
+import { useUser, useClerk } from '@clerk/expo'
 import { useRouter } from 'expo-router'
 import {
   View,
@@ -35,18 +35,24 @@ export default function ProfileScreen() {
         <Text style={styles.title}>Profile</Text>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.content}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 32 }}
+      >
         {/* User Info */}
         <View style={styles.profileSection}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>
-              {user?.firstName?.charAt(0).toUpperCase()}
+              {user?.firstName?.charAt(0)?.toUpperCase() || '?'}
             </Text>
           </View>
           <Text style={styles.userName}>
             {user?.firstName} {user?.lastName}
           </Text>
-          <Text style={styles.userEmail}>{user?.emailAddresses[0]?.emailAddress}</Text>
+          <Text style={styles.userEmail}>
+            {user?.primaryEmailAddress?.emailAddress}
+          </Text>
         </View>
 
         {/* Account Settings */}
@@ -93,10 +99,7 @@ export default function ProfileScreen() {
         </View>
 
         {/* Sign Out */}
-        <TouchableOpacity
-          style={styles.signOutButton}
-          onPress={handleSignOut}
-        >
+        <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
           <Text style={styles.signOutText}>Sign Out</Text>
         </TouchableOpacity>
       </ScrollView>

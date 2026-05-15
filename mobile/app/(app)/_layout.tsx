@@ -1,14 +1,10 @@
-import { BottomTabNavigationOptions, createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { Stack } from 'expo-router'
-import { useUser } from '@clerk/clerk-react-native'
+import { useAuth } from '@clerk/expo'
 import { useEffect } from 'react'
-import { useRouter } from 'expo-router'
-
-const Tab = createBottomTabNavigator()
+import { router } from 'expo-router'
 
 export default function AppLayout() {
-  const { isSignedIn, isLoaded } = useUser()
-  const router = useRouter()
+  const { isSignedIn, isLoaded } = useAuth()
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
@@ -16,13 +12,8 @@ export default function AppLayout() {
     }
   }, [isSignedIn, isLoaded])
 
-  if (!isLoaded) {
-    return null
-  }
-
-  if (!isSignedIn) {
-    return null
-  }
+  if (!isLoaded) return null
+  if (!isSignedIn) return null
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
