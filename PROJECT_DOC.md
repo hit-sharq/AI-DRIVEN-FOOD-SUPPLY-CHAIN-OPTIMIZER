@@ -16,18 +16,18 @@ To transform post-harvest food loss into profitable, sustainable transactions th
 ## Premium Enhancements
 
 ### Technology Stack Upgrades
-- **Frontend**: Flutter 3.10+ with Material Design 3 (adaptive UI) OR React Native with Expo
-- **Backend**: Microservices with Node.js/NestJS or Python/FastAPI on Kubernetes (EKS/GKE)
-- **AI**: Ensemble models (YOLOv8 + time-series forecasting) with TensorFlow Lite for on-device inference
-- **Database**: PostgreSQL + TimescaleDB for temporal data + Redis for caching
-- **DevOps**: GitHub Actions CI/CD, Terraform IaC, Prometheus/Grafana/Loki observability
+- **Frontend**: Next.js 16.2.6 with React 19, Tailwind CSS 4, and shadcn/ui components (web) + React Native/Expo (mobile)
+- **Backend**: Next.js API routes with Prisma ORM and PostgreSQL
+- **AI**: Computer vision models for shelf-life prediction (planned: TensorFlow Lite/YOLOnv8 for mobile)
+- **Database**: PostgreSQL via Prisma
+- **DevOps**: GitHub Actions CI/CD, Vercel deployment, Prometheus/Grafana observability
 
 ### Premium Features
 - **Computer Vision**: Multi-spectral imaging, AR shelf-life progression overlay
 - **Dynamic Pricing**: Competitive price scraping, weather-integrated adjustments
 - **B2B Marketplace**: Escrow payments, quality certification badges, reverse auctions
 - **Analytics**: Predictive ordering with confidence intervals, carbon footprint calculator, regional benchmarking
-- **UX**: Offline-first with CRDTs, voice interface (Swahili/English), gamification, WCAG 2.1 AA accessibility
+- **UX**: Offline-first with service workers, voice interface (Swahili/English), gamification, WCAG 2.1 AA accessibility
 
 ### Monetization Strategy
 - **Free Tier**: Basic scanning, pricing, marketplace access
@@ -39,13 +39,13 @@ To transform post-harvest food loss into profitable, sustainable transactions th
 ## Implementation Roadmap
 
 ### Phase 1 (Months 1-3): MVP & Validation
-- Build core scanning → pricing → notification flow with Flutter + TensorFlow Lite
+- Build core scanning → pricing → notification flow
 - Pilot with 5 vendors in Marikiti market
 - Focus on validating AI prediction accuracy and UI simplicity
 
 ### Phase 2 (Months 4-6): Marketplace & Offline
 - Integrate B2B marketplace with Bolt Food API
-- Implement SQLite offline storage with conflict resolution
+- Implement offline storage with service workers
 - Launch basic analytics dashboard
 
 ### Phase 3 (Months 7-12): Premium & Scale
@@ -75,36 +75,35 @@ To transform post-harvest food loss into profitable, sustainable transactions th
 4. Detailed cost analysis for premium tier development
 
 ## Current Status (as of 2026-05-15)
-- Project structure created: ai_models, backend, frontend, docs directories ✓
-- Backend: 
-  * Node.js/Express server with basic routes and middleware ✓
-  * File upload handling (multer) for produce images ✓
-  * Shelf-life prediction endpoint (simulated) returning random 1-7 days ✓
-  * Vendor model defined for MongoDB (with geolocation for market/vendor matching) ✓
-  * Environment variables template created ✓
-  * MongoDB connection established ✓
-  * Vendor authentication API (register, login, profile) implemented ✓
-- Frontend: 
-  * Initialized React/Vite app with basic structure ✓
-  * Created ShelfLifePredictor component that allows users to upload an image and get a shelf-life prediction from the backend ✓
-  * Installed axios for HTTP requests ✓
-- Documentation: Created PROJECT_DOC.md and updated READMEs in frontend/backend ✓
-- Tested: Shelf-life prediction API endpoint working with file upload (simulated prediction) ✓
+- **Full-stack application** with Next.js 16.2.6, React 19, Prisma, PostgreSQL, and Clerk authentication ✓
+- **Mobile app** directory with Expo/React Native structure ✓
+- **API Routes**: 
+  * `/app/api/predictions/route.ts` - Shelf-life prediction (currently simulated based on product category) ✓
+  * `/app/api/vendors/route.ts` - Vendor management ✓
+  * `/app/api/products/route.ts` - Product catalog ✓
+  * `/app/api/listings/route.ts` - Marketplace listings ✓
+  * `/app/api/transactions/route.ts` - Purchase transactions ✓
+- **Database Schema**: Prisma models for User, Vendor, Product, Listing, Prediction, Transaction ✓
+- **Authentication**: Clerk integration for secure user management ✓
+- **Frontend Components**: 
+  * Prediction upload interface
+  * Dashboard analytics
+  * Marketplace browsing
+  * Profile management ✓
+- **Styling**: Tailwind CSS 4 with shadcn/ui components ✓
+- **Documentation**: Created PROJECT_DOC.md and updated README.md ✓
 
 ## Completed Tasks Summary
-- Project setup and directory structure
-- Backend server with Express and basic middleware
-- File upload functionality for produce images
-- Simulated shelf-life prediction API endpoint
-- Vendor data model for MongoDB (with password hashing and JWT authentication)
-- MongoDB connection setup
-- Vendor registration, login, and profile APIs
-- Frontend React/Vite application initialized
-- Image upload component with prediction integration
-- HTTP client (axios) installed in frontend
-- Environment configuration template
-- API endpoint testing completed
-- Documentation created and updated
+- Full-stack Next.js application with API routes
+- Prisma ORM with PostgreSQL database schema
+- Clerk authentication integration
+- Core API endpoints for predictions, vendors, products, listings, transactions
+- Mobile app foundation (Expo/React Native)
+- Responsive web UI with Tailwind and shadcn/ui
+- Image upload and mock shelf-life prediction functionality
+- Vendor and product management interfaces
+- Marketplace listing system
+- Comprehensive documentation
 
 ## Long-Term Goals
 - Achieve 85%+ accuracy in shelf-life predictions for common East African produce
@@ -114,5 +113,5 @@ To transform post-harvest food loss into profitable, sustainable transactions th
 - Measure and report socio-environmental impact (CO2e saved, meals provided)
 
 ---
-*Last Updated: 2026-05-15T15:25:00+03:00*
+*Last Updated: 2026-05-15T17:05:00+03:00*
 *This document will be continuously updated as the project evolves.*

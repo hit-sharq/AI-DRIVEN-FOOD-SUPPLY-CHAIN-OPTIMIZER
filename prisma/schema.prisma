@@ -1,0 +1,187 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// User model - managed by Clerk, we store additional app-specific data
+model User {
+  id            String     @id // Clerk user ID
+  email         String     @unique
+  name          String?
+  role          UserRole   @default(VENDOR)
+  vendorProfile Vendor?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  // Relations
+  listings      Listing[]
+  transactions  Transaction[]
+  predictions   Prediction[]
+}
+
+enum UserRole {
+  VENDOR
+  BUYER
+  ADMIN
+}
+
+// Vendor profile
+model Vendor {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  businessName   String
+  contactName    String?
+  email          String   @unique
+  phone          String?
+  location       String   // City/region
+  latitude       Float?
+  longitude      Float?
+  businessType   String?  // Individual farmer, cooperative, distributor, etc.
+  description    String?
+  profileImage   String?  // URL to image
+  verificationStatus VendorVerificationStatus @default(PENDING)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  products       Product[]
+  listings       Listing[]
+}
+
+enum VendorVerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+// Product types in inventory
+model Product {
+  id             String   @id @default(cuid())
+  vendorId       String
+  name           String   // e.g., "Tomatoes", "Bananas"
+  category       String   // e.g., "Vegetables", "Fruits"
+  unit           String   // "kg", "bunch", "crate"
+  description    String?
+  imageUrl       String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  vendor         Vendor   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  listings       Listing[]
+  predictions    Prediction[]
+
+  @@index([vendorId])
+}
+
+// Active marketplace listings
+model Listing {
+  id             String   @id @default(cuid())
+  vendorId       String
+  productId      String
+  quantity       Float    // Amount available
+  unit           String   // Same as product unit
+  pricePerUnit   Float    // Price in local currency
+  surplus        Boolean  @default(true) // True if it's surplus (discounted)
+  description    String?  // Notes about condition, quality
+  status         ListingStatus @default(ACTIVE)
+  expiresAt      DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  vendor         Vendor   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  transactions   Transaction[]
+  pricingHistory PricingHistory[]
+
+  @@index([vendorId])
+  @@index([productId])
+  @@index([status])
+}
+
+enum ListingStatus {
+  ACTIVE
+  SOLD_OUT
+  EXPIRED
+  DELISTED
+}
+
+// Shelf-life predictions from computer vision
+model Prediction {
+  id             String   @id @default(cuid())
+  userId         String
+  productId      String
+  imageUrl       String   // URL of the uploaded image
+  shelfLife      Int?     // Estimated days remaining
+  quality        String?  // e.g., "Good", "Fair", "Poor"
+  ripeness       String?  // For fruits: "Unripe", "Ripe", "Overripe"
+  moldPresence   Boolean? // Detection result
+  bruises        Boolean? // Detection result
+  confidence     Float?   // Model confidence (0-1)
+  rawPrediction  String?  // JSON string of full prediction data
+  createdAt      DateTime @default(now())
+
+  // Relations
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([productId])
+}
+
+// Purchase transactions
+model Transaction {
+  id             String   @id @default(cuid())
+  buyerId        String
+  vendorId       String
+  listingId      String
+  quantity       Float
+  pricePerUnit   Float
+  totalPrice     Float
+  status         TransactionStatus @default(PENDING)
+  paymentMethod  String?  // e.g., "mobile_money", "bank_transfer"
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  buyer          User     @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  listing        Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([buyerId])
+  @@index([vendorId])
+  @@index([listingId])
+  @@index([status])
+}
+
+enum TransactionStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+// Pricing history for dynamic pricing algorithm
+model PricingHistory {
+  id             String   @id @default(cuid())
+  listingId      String
+  price          Float
+  quantity       Float
+  soldQuantity   Float    @default(0)
+  daysToExpiry   Int?     // Estimated days until expiration
+  timestamp      DateTime @default(now())
+
+  // Relations
+  listing        Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId])
+  @@index([timestamp])
+}
