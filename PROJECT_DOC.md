@@ -106,35 +106,6 @@ To transform post-harvest food loss into profitable, sustainable transactions th
 - API endpoint testing completed
 - Documentation created and updated
 
-## Immediate Next Steps
-1. **Database Integration**: 
-   - Install and configure MongoDB (or use MongoDB Atlas for cloud) ✓
-   - Connect backend to MongoDB using mongoose ✓
-   - Implement vendor registration and authentication APIs ✓
-
-2. **AI Model Development**:
-   - Collect and label dataset of produce images with shelf-life measurements
-   - Train a regression model (transfer learning with MobileNetV2/EfficientNet)
-   - Convert to TensorFlow Lite and replace the placeholder model
-   - Update backend to use the actual model for predictions
-
-3. **Frontend Development**:
-   - Create image upload component (using device camera or gallery) ✓
-   - Display shelf-life prediction results with confidence ✓
-   - Design vendor dashboard showing inventory and recommendations
-   - Implement offline-first capabilities with service workers
-
-4. **API Expansion**:
-   - Dynamic pricing engine endpoints
-   - B2B marketplace APIs (listings, transactions, matching)
-   - Analytics dashboard data endpoints
-   - User authentication and authorization (JWT) ✓
-
-5. **Partnerships & Integrations**:
-   - Reach out to Boda-Boda services for API integration feasibility
-   - Explore M-Pesa or mobile money APIs for payments
-   - Contact local markets for pilot programs
-
 ## Long-Term Goals
 - Achieve 85%+ accuracy in shelf-life predictions for common East African produce
 - Reduce vendor food waste by 30-50% through the platform
@@ -143,5 +114,5 @@ To transform post-harvest food loss into profitable, sustainable transactions th
 - Measure and report socio-environmental impact (CO2e saved, meals provided)
 
 ---
-*Last Updated: 2026-05-15T11:16:50+03:00*
+*Last Updated: 2026-05-15T15:25:00+03:00*
 *This document will be continuously updated as the project evolves.*
