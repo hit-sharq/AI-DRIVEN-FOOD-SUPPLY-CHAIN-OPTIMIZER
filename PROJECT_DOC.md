@@ -76,15 +76,51 @@ To transform post-harvest food loss into profitable, sustainable transactions th
 
 ## Current Status (as of 2026-05-15)
 - Project structure created: ai_models, backend, frontend, docs directories
-- Backend: Initialized Node.js/Express server with basic routes and middleware, file upload handling, and shelf-life prediction endpoint (simulated)
+- Backend: 
+  * Node.js/Express server with basic routes and middleware
+  * File upload handling (multer) for produce images
+  * Shelf-life prediction endpoint (simulated) returning random 1-7 days
+  * Vendor model defined for MongoDB (with geolocation for market/vendor matching)
+  * Environment variables template created
 - Frontend: Initialized React/Vite app with basic structure
 - Documentation: Created PROJECT_DOC.md and updated READMEs in frontend/backend
-- Immediate next steps:
-  a. Set up development environment (Flutter installation issues need resolution - consider using React Native for web/mobile)
-  b. Implement computer vision model for shelf-life prediction (replace simulated with actual TensorFlow Lite model)
-  c. Design database schema for vendors, inventory, transactions
-  d. Create API endpoints for core features (dynamic pricing, B2B marketplace, analytics)
-  e. Connect frontend to backend APIs
+- Tested: Shelf-life prediction API endpoint working with file upload
+
+## Immediate Next Steps
+1. **Database Integration**: 
+   - Install and configure MongoDB (or use MongoDB Atlas for cloud)
+   - Connect backend to MongoDB using mongoose
+   - Implement vendor registration and authentication APIs
+
+2. **AI Model Development**:
+   - Collect and label dataset of produce images with shelf-life measurements
+   - Train a regression model (transfer learning with MobileNetV2/EfficientNet)
+   - Convert to TensorFlow Lite and replace the placeholder model
+   - Update backend to use the actual model for predictions
+
+3. **Frontend Development**:
+   - Create image upload component (using device camera or gallery)
+   - Display shelf-life prediction results with confidence
+   - Design vendor dashboard showing inventory and recommendations
+   - Implement offline-first capabilities with service workers
+
+4. **API Expansion**:
+   - Dynamic pricing engine endpoints
+   - B2B marketplace APIs (listings, transactions, matching)
+   - Analytics dashboard data endpoints
+   - User authentication and authorization (JWT)
+
+5. **Partnerships & Integrations**:
+   - Reach out to Boda-Boda services for API integration feasibility
+   - Explore M-Pesa or mobile money APIs for payments
+   - Contact local markets for pilot programs
+
+## Long-Term Goals
+- Achieve 85%+ accuracy in shelf-life predictions for common East African produce
+- Reduce vendor food waste by 30-50% through the platform
+- Enable vendors to increase monthly profits by KSh 10,000+ via reduced waste and dynamic pricing
+- Establish a trusted B2B marketplace for surplus food with escrow payments
+- Measure and report socio-environmental impact (CO2e saved, meals provided)
 
 ---
 *Last Updated: 2026-05-15T11:16:50+03:00*
