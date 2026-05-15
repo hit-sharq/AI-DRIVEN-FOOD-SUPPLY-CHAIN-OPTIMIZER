@@ -82,6 +82,8 @@ To transform post-harvest food loss into profitable, sustainable transactions th
   * Shelf-life prediction endpoint (simulated) returning random 1-7 days ✓
   * Vendor model defined for MongoDB (with geolocation for market/vendor matching) ✓
   * Environment variables template created ✓
+  * MongoDB connection established ✓
+  * Vendor authentication API (register, login, profile) implemented ✓
 - Frontend: 
   * Initialized React/Vite app with basic structure ✓
   * Created ShelfLifePredictor component that allows users to upload an image and get a shelf-life prediction from the backend ✓
@@ -94,7 +96,9 @@ To transform post-harvest food loss into profitable, sustainable transactions th
 - Backend server with Express and basic middleware
 - File upload functionality for produce images
 - Simulated shelf-life prediction API endpoint
-- Vendor data model for MongoDB
+- Vendor data model for MongoDB (with password hashing and JWT authentication)
+- MongoDB connection setup
+- Vendor registration, login, and profile APIs
 - Frontend React/Vite application initialized
 - Image upload component with prediction integration
 - HTTP client (axios) installed in frontend
@@ -104,9 +108,9 @@ To transform post-harvest food loss into profitable, sustainable transactions th
 
 ## Immediate Next Steps
 1. **Database Integration**: 
-   - Install and configure MongoDB (or use MongoDB Atlas for cloud)
-   - Connect backend to MongoDB using mongoose
-   - Implement vendor registration and authentication APIs
+   - Install and configure MongoDB (or use MongoDB Atlas for cloud) ✓
+   - Connect backend to MongoDB using mongoose ✓
+   - Implement vendor registration and authentication APIs ✓
 
 2. **AI Model Development**:
    - Collect and label dataset of produce images with shelf-life measurements
@@ -124,7 +128,7 @@ To transform post-harvest food loss into profitable, sustainable transactions th
    - Dynamic pricing engine endpoints
    - B2B marketplace APIs (listings, transactions, matching)
    - Analytics dashboard data endpoints
-   - User authentication and authorization (JWT)
+   - User authentication and authorization (JWT) ✓
 
 5. **Partnerships & Integrations**:
    - Reach out to Boda-Boda services for API integration feasibility
