@@ -1,4 +1,5 @@
 import React from 'react';
+import ShelfLifePredictor from './components/ShelfLifePredictor';
 
 function App() {
   return (
@@ -8,11 +9,7 @@ function App() {
         <p>Reducing waste, increasing profits</p>
       </header>
       <main>
-        {/* Main content will go here */}
-        <section>
-          <h2>Welcome</h2>
-          <p>This is the premium product for optimizing food supply chains in emerging markets.</p>
-        </section>
+        <ShelfLifePredictor />
       </main>
     </div>
   );

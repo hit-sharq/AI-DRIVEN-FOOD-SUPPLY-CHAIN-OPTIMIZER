@@ -82,9 +82,12 @@ To transform post-harvest food loss into profitable, sustainable transactions th
   * Shelf-life prediction endpoint (simulated) returning random 1-7 days
   * Vendor model defined for MongoDB (with geolocation for market/vendor matching)
   * Environment variables template created
-- Frontend: Initialized React/Vite app with basic structure
+- Frontend: 
+  * Initialized React/Vite app with basic structure
+  * Created ShelfLifePredictor component that allows users to upload an image and get a shelf-life prediction from the backend
+  * Installed axios for HTTP requests
 - Documentation: Created PROJECT_DOC.md and updated READMEs in frontend/backend
-- Tested: Shelf-life prediction API endpoint working with file upload
+- Tested: Shelf-life prediction API endpoint working with file upload (simulated prediction)
 
 ## Immediate Next Steps
 1. **Database Integration**: 
