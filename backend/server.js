@@ -3,9 +3,13 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const path = require('path');
+const connectDB = require('./src/config/db');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Connect to MongoDB
+connectDB();
 
 // Middleware
 app.use(helmet());
@@ -36,6 +40,9 @@ app.get('/health', (req, res) => {
 
 // Shelf-life prediction routes
 app.use('/api/shelf-life', require('./src/routes/shelfLifeRoutes'));
+
+// Vendor routes
+app.use('/api/vendors', require('./src/routes/vendorRoutes'));
 
 // 404 handler
 app.use((req, res) => {
