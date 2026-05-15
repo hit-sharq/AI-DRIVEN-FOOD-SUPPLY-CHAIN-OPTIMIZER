@@ -20,7 +20,6 @@ model User {
   updatedAt     DateTime   @updatedAt
 
   // Relations
-  listings      Listing[]
   transactions  Transaction[]
   predictions   Prediction[]
 }

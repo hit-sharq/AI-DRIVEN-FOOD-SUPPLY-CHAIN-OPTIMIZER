@@ -229,7 +229,7 @@ AI-DRIVEN-FOOD-SUPPLY-CHAIN-OPTIMIZER/
   - **Body**: 
     ```json
     {
-      "name": "John Doe",
+      "name": "joshua mwendwa",
       "phoneNumber": "+254700000000",
       "password": "securepassword123",
       "location": [36.8219, -1.2921], // [longitude, latitude]
