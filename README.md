@@ -1,104 +1,316 @@
-# AI-DRIVEN-FOOD-SUPPLY-CHAIN-OPTIMIZER
+# AI-Driven Food Supply Chain Optimizer
 
-BUSINESS PROPOSAL: AI-DRIVEN FOOD SUPPLY CHAIN OPTIMIZER
+> **Transforming post-harvest food loss into profitable, sustainable transactions for emerging markets**
 
-1.​ Executive Summary​
-Post-harvest food loss costs smallholder farmers, aggregators, and retailers
-billions of shillings annually while contributing heavily to environmental waste.
-This project outlines a combined AI and software platform designed to
-optimize food supply chains in emerging markets like Nairobi. By predicting
-produce shelf-life, dynamically automating discounts, and matching surplus
-stock with immediate B2B buyers, this business turns financial losses into
-profitable, sustainable transactions.
+## Table of Contents
+- [Overview](#overview)
+- [Current Status](#current-status)
+- [Features Implemented](#features-implemented)
+- [Technology Stack](#technology-stack)
+- [Project Structure](#project-structure)
+- [Setup Instructions](#setup-instructions)
+- [API Endpoints](#api-endpoints)
+- [Frontend Components](#frontend-components)
+- [Next Steps](#next-steps)
+- [Contributing](#contributing)
+- [License](#license)
 
-2.​ The Problem & Market Opportunity
-●​ The Problem: Micro and small food vendors face high spoilage rates due to
-weak cold-chain infrastructure, volatile market demand, and a lack of real-time
-data. Food is thrown away while nearby processors face high raw material
-costs.
-●​ The Impact: Food waste accounts for approximately 10% of global
-greenhouse gas emissions and directly reduces the daily profit margins of
-local merchants.
-●​ Target Market: Small-to-medium grocery retailers, open-air market vendors
-(e.g., Marikiti, Muthurwa), local restaurants, juice bars, and secondary food
-processing businesses.
+## Overview
+This project implements a software platform designed to optimize food supply chains in emerging markets by:
+- Predicting produce shelf-life using computer vision
+- Enabling dynamic pricing to reduce waste
+- Connecting vendors with B2B buyers for surplus stock
+- Providing analytics for better decision-making
 
-3.​ Product Architecture (The Software Workings)​
-The platform consists of a mobile-first application driven by four core software
-engines:
-A. Computer Vision Shelf-Life Predictor
-●​ Input: The user takes a smartphone photo of incoming or existing produce
-(e.g., tomatoes, avocados, mangoes).
-●​ Processing: A lightweight computer vision model analyzes surface texture,
-coloration, and blemishes.
-●​ Output: The system calculates an estimated shelf-life window (e.g., 3 days
-remaining before spoilage).
-B. Dynamic Pricing Engine
-●​ Function: Automatically monitors inventory ages.●​ Action: As the predicted expiration date nears, the software algorithmically
-lowers the price on the user's digital storefront to incentivize immediate
-clearance sales.
-C. B2B Surplus Marketplace
-●​ Matching System: Instantly lists declining inventory on a localized
-marketplace accessible by B2B buyers (juice makers, animal feed processors,
-charities).
-●​ Automation: When produce hits a critical ripeness threshold, the system
-triggers instant, location-based notifications to nearby buyers.
-D. Vendor Analytics Dashboard
-●​ Insights: Aggregates weekly historical data to show vendors which items spoil
-fastest and exactly how much capital was saved or lost.
-●​ Forecasting: Provides smart ordering recommendations for the following week
-to prevent over-purchasing.
-4.​ Proposed Technical Stack​
-To build a lightweight, fast, and offline-resilient mobile application:
-●​ Frontend: Flutter (Dart) or React Native for a cross-platform Android mobile
-app that performs smoothly on budget smartphones.
-●​ Backend: Node.js with Express or Python (FastAPI) hosted on a lightweight
-cloud infrastructure.
-●​ AI Model: TensorFlow Lite or YOLOv8 optimized for mobile devices, allowing
-basic computer vision scans to process even with poor internet connectivity.
-●​ Database: PostgreSQL for transactional data combined with SQLite for local,
-on-device offline data storage.
-5.​ Boda-Boda Logistics Routing Integration​
-Moving the food quickly before it spoils requires an on-demand delivery
-network:
-●​ API Integration: The platform connects directly with local courier APIs (such
-as Bolt Food, Uber Direct, or localized Boda-Boda fleets) via a webhook
-system.
-●​ Batching Algorithm: When a buyer purchases surplus items from multiple
-nearby vendors, the software batches the pickups into a single optimized
-route for one Boda-Boda driver, cutting delivery costs by up to 40%.●​ Cost Sharing: The buyer pays a discounted delivery fee subsidized by the
-vendor's saved waste margin, ensuring the transport cost never outweighs the
-food value.
-6.​ Execution & Go-To-Market Strategy
-Phase 1: The 30-Day Hyper-Local Pilot
-●​ Scope: Deploy a free prototype to a cohort of 5–10 concentrated vendors in a
-single market hub (e.g., Pumwani or Eastleigh).
-●​ Objective: Validate AI prediction accuracy against real-world spoilage rates
-and ensure the user interface is simple enough for fast-paced market
-environments.
-Phase 2: ROI Measurement
-●​ Metrics: Gather data proving the financial return on investment (ROI). For
-example: Vendor X saved KSh 15,000 in monthly waste using the platform.
-●​ Case Studies: Convert these metrics into simple, highly scannable marketing
-pamphlets for wider distribution.
-Phase 3: Commercial Expansion
-●​ Buyer-First Acquisition: Onboard large-volume budget buyers (juice bars,
-schools) to create immediate demand, making it highly attractive for sellers to
-join.
-●​ Direct Sales: Use ground-level sales representatives to physically onboard
-market stall owners through word-of-mouth networks.
-7.​ Revenue Model​
-To ensure low friction and rapid adoption, the platform utilizes a
-performance-based monetization model:
-●​ Transaction Fee: The core software is free to use for scanning and inventory
-tracking. The platform charges a 5% to 10% commission fee only on
-successful transactions completed through the surplus marketplace.
-●​ Premium Analytics (Future Phase): A low-cost monthly subscription tier for
-larger aggregators requiring advanced logistics routing and multi-location
-supply forecasting.8.​ Socio-Environmental Impact
-●​ Climate Action: Directly reduces methane emissions originating from organic
-waste in local landfills.
-●​ Economic Empowerment: Retains capital within smallholder and micro-retailer
-ecosystems by monetizing inventory that previously yielded zero return.
-●​ Food Security: Dynamically redirects perfectly edible food back into the local
-consumer market at affordable, discounted price points.
+The platform helps smallholder farmers and vendors reduce post-harvest losses, increase profits, and contribute to food security and environmental sustainability.
+
+## Current Status
+As of May 15, 2026, we have implemented the foundational infrastructure:
+
+### ✅ Completed Components
+1. **Backend API** (Node.js/Express)
+   - RESTful API with proper routing and middleware
+   - File upload handling for produce images
+   - Simulated shelf-life prediction endpoint
+   - Vendor authentication system (registration, login, profile)
+   - MongoDB integration with Mongoose
+   - Environment configuration
+
+2. **Frontend Application** (React/Vite)
+   - Modern React 18 app with Vite bundler
+   - Image upload component for shelf-life prediction
+   - HTTP client (Axios) for API communication
+   - Responsive design foundation
+
+3. **Database Model**
+   - Vendor schema with geolocation support
+   - Authentication with password hashing and JWT
+
+4. **Documentation**
+   - Comprehensive PROJECT_DOC.md
+   - Inline code comments
+   - API endpoint documentation
+
+### 🔧 In Progress / To Be Implemented
+- Actual TensorFlow Lite shelf-life prediction model (currently simulated)
+- Dynamic pricing engine endpoints
+- B2B marketplace functionality
+- Analytics dashboard
+- Offline-first capabilities
+- Vendor dashboard UI
+
+## Features Implemented
+- **Vendor Management**: Registration, login, profile updates
+- **Image Upload**: Secure file upload for produce images
+- **Shelf-Life Prediction**: API endpoint (currently returns simulated predictions)
+- **Authentication**: JWT-based protected routes
+- **Geolocation Support**: Store vendor locations for proximity-based services
+- **Error Handling**: Proper HTTP status codes and error messages
+- **Middleware**: Security (helmet), logging (morgan), CORS, body parsing
+
+## Technology Stack
+### Backend
+- **Runtime**: Node.js v24.15.0
+- **Framework**: Express.js
+- **Database**: MongoDB with Mongoose ODM
+- **Authentication**: JSON Web Tokens (jwt), bcryptjs for password hashing
+- **File Upload**: Multer
+- **Security**: Helmet.js
+- **Logging**: Morgan
+- **Validation**: Built-in with Mongoose
+
+### Frontend
+- **Framework**: React 18
+- **Build Tool**: Vite
+- **Styling**: CSS (planned migration to Tailwind or Material-UI)
+- **HTTP Client**: Axios
+- **State Management**: React hooks (useState, useEffect)
+
+### DevOps
+- **Version Control**: Git
+- **Package Management**: npm
+- **Environment Variables**: dotenv pattern
+- **Linting**: Planned (ESLint, Prettier)
+
+### AI/ML (Planned)
+- **Model**: TensorFlow Lite for on-device inference
+- **Training**: Transfer learning with MobileNetV2/EfficientNet
+- **Input**: Produce images (tomatoes, avocados, mangoes, etc.)
+- **Output**: Estimated shelf-life in days (regression)
+
+## Project Structure
+```
+AI-DRIVEN-FOOD-SUPPLY-CHAIN-OPTIMIZER/
+├── ai_models/                    # TensorFlow Lite models and training scripts
+│   ├── README.md
+│   └── shelf_life_model.tflite   # Placeholder model
+├── backend/                      # Node.js/Express server
+│   ├── src/
+│   │   ├── config/               # Database configuration
+│   │   │   └── db.js
+│   │   ├── controllers/          # Request handlers
+│   │   │   ├── shelfLifeController.js
+│   │   │   └── vendorController.js
+│   │   ├── middleware/           # Custom middleware
+│   │   │   └── authMiddleware.js
+│   │   ├── models/               # Database models
+│   │   │   └── Vendor.js
+│   │   ├── routes/               # API route definitions
+│   │   │   ├── shelfLifeRoutes.js
+│   │   │   └── vendorRoutes.js
+│   │   ├── uploads/              # Uploaded produce images
+│   │   ├── .env.example          # Environment variables template
+│   │   ├── server.js             # Entry point
+│   │   ├── package.json
+│   │   └── package-lock.json
+├── frontend/                     # React/Vite application
+│   ├── src/
+│   │   ├── components/           # Reusable components
+│   │   │   └── ShelfLifePredictor.js
+│   │   ├── App.jsx               # Main app component
+│   │   ├── main.jsx              # Entry point
+│   │   ├── index.html            # HTML template
+│   │   └── vite.config.js        # Vite configuration
+│   ├── .gitignore
+│   ├── package.json
+│   └── package-lock.json
+├── docs/                         # Additional documentation
+├── .gitignore                    # Global gitignore
+├── PROJECT_DOC.md                # Detailed project documentation
+├── README.md                     # This file
+└── LICENSE                       # MIT License
+```
+
+## Setup Instructions
+### Prerequisites
+- Node.js (v18+ recommended)
+- MongoDB (local or Atlas cluster)
+- npm (comes with Node.js)
+
+### Backend Setup
+1. Navigate to the backend directory:
+   ```bash
+   cd backend
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Create a `.env` file from the example:
+   ```bash
+   cp .env.example .env
+   ```
+
+4. Edit `.env` to set your:
+   - `MONGODB_URI` (MongoDB connection string)
+   - `JWT_SECRET` (a strong secret for JWT signing)
+   - `PORT` (optional, defaults to 5000)
+
+5. Start the development server:
+   ```bash
+   npm start
+   ```
+   Or for development with auto-restart:
+   ```bash
+   npm run dev   # (if you add nodemon as dev dependency)
+   ```
+
+6. The API will be available at `http://localhost:5000`
+
+### Frontend Setup
+1. Navigate to the frontend directory:
+   ```bash
+   cd frontend
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+4. The app will be available at `http://localhost:5173` (or another port if 5173 is in use)
+
+### Important Notes
+- The frontend is configured to proxy API requests to `http://localhost:5000` during development
+- Make sure the backend is running before testing frontend features that require API calls
+- Uploaded images are stored in `backend/uploads/` directory
+
+## API Endpoints
+### Health Check
+- `GET /` - API status information
+- `GET /health` - Health check endpoint
+
+### Shelf-Life Prediction
+- `POST /api/shelf-life/predict` - Upload a produce image to get shelf-life prediction
+  - **Headers**: `Content-Type: multipart/form-data`
+  - **Body**: `produceImage` (file)
+  - **Response**: 
+    ```json
+    {
+      "success": true,
+      "data": {
+        "shelfLifeDays": 5,
+        "confidence": 0.85,
+        "fileId": "produceImage-123456789.jpg",
+        "message": "Shelf-life prediction: 5 day(s)"
+      }
+    }
+    ```
+
+### Vendor Management
+- `POST /api/vendors/register` - Register a new vendor
+  - **Body**: 
+    ```json
+    {
+      "name": "John Doe",
+      "phoneNumber": "+254700000000",
+      "password": "securepassword123",
+      "location": [36.8219, -1.2921], // [longitude, latitude]
+      "market": "Marikiti",
+      "stallNumber": "A12",
+      "primaryProduce": ["tomatoes", "onions"],
+      "preferredLanguage": "en"
+    }
+    ```
+  - **Response**: Vendor data and JWT token
+
+- `POST /api/vendors/login` - Login vendor
+  - **Body**: 
+    ```json
+    {
+      "phoneNumber": "+254700000000",
+      "password": "securepassword123"
+    }
+    ```
+  - **Response**: Vendor data and JWT token
+
+- `GET /api/vendors/profile` - Get vendor profile (protected)
+  - **Headers**: `Authorization: Bearer <token>`
+  - **Response**: Vendor data (excluding password)
+
+- `PUT /api/vendors/profile` - Update vendor profile (protected)
+  - **Headers**: `Authorization: Bearer <token>`
+  - **Body**: Fields to update (same as registration schema)
+  - **Response**: Updated vendor data and new JWT token
+
+## Frontend Components
+### ShelfLifePredictor
+Located at `frontend/src/components/ShelfLifePredictor.js`
+- Allows users to upload an image of produce
+- Sends image to backend for shelf-life prediction
+- Displays prediction results with confidence percentage
+- Handles loading states and error messages
+
+## Next Steps
+### Immediate Priorities
+1. **Implement Actual AI Model**
+   - Collect and label dataset of produce images with shelf-life measurements
+   - Train regression model using transfer learning (MobileNetV2/EfficientNet)
+   - Convert to TensorFlow Lite format
+   - Replace simulated prediction with real model inference in backend
+
+2. **Expand API Functionality**
+   - Dynamic pricing engine endpoints
+   - B2B marketplace APIs (listings, transactions, matching)
+   - Analytics dashboard endpoints
+   - Inventory management endpoints
+
+3. **Enhance Frontend**
+   - Vendor dashboard with inventory overview
+   - Marketplace browsing interface
+   - Analytics visualization
+   - Offline-first capabilities with service workers
+   - Push notifications for expiring produce
+
+4. **Partnerships & Integrations**
+   - Boda-Boda logistics API integration
+   - Mobile money payment gateway (M-Pesa, etc.)
+   - Local market partnerships for pilot programs
+
+## Contributing
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+Please read [PROJECT_DOC.md](PROJECT_DOC.md) for detailed contribution guidelines and project roadmap.
+
+## License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+- Inspired by the need to reduce food waste in emerging markets
+- Built with ❤️ for smallholder farmers and vendors
+- Special thanks to open-source contributors whose tools make this possible
+
+---
+*Last updated: May 15, 2026*
+*This README reflects the current state of implementation as documented in PROJECT_DOC.md*
