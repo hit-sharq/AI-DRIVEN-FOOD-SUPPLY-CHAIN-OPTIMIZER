@@ -20,13 +20,17 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Verify the product belongs to the vendor
+    // Verify the product belongs to the vendor and grab its unit
     const product = await prisma.product.findUnique({
       where: { id: productId },
-      include: { vendor: true },
     })
 
-    if (!product || product.vendor.clerkUserId !== userId) {
+    if (!product) {
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 })
+    }
+
+    const vendor = await prisma.vendor.findUnique({ where: { userId } })
+    if (!vendor || vendor.id !== product.vendorId) {
       return NextResponse.json(
         { error: 'Product not found or unauthorized' },
         { status: 404 }
@@ -35,7 +39,9 @@ export async function POST(req: NextRequest) {
 
     const listing = await prisma.listing.create({
       data: {
+        vendorId: vendor.id,
         productId,
+        unit: product.unit,
         quantity,
         pricePerUnit,
         description,
@@ -71,8 +77,8 @@ export async function GET(req: NextRequest) {
   try {
     const searchParams = req.nextUrl.searchParams
     const category = searchParams.get('category')
-    const vendor = searchParams.get('vendor')
-    const userId = searchParams.get('userId') // Show only user's listings
+    const vendorId = searchParams.get('vendorId')
+    const userId = searchParams.get('userId')
 
     let where: any = { status: 'ACTIVE' }
 
@@ -80,18 +86,13 @@ export async function GET(req: NextRequest) {
       where.product = { category }
     }
 
-    if (vendor) {
-      where.product = {
-        ...where.product,
-        vendor: { name: { contains: vendor, mode: 'insensitive' } },
-      }
+    if (vendorId) {
+      where.vendorId = vendorId
     }
 
     if (userId) {
-      where.product = {
-        ...where.product,
-        vendor: { clerkUserId: userId },
-      }
+      // Filter listings belonging to the vendor of the authenticated user
+      where.vendor = { userId }
     }
 
     const listings = await prisma.listing.findMany({

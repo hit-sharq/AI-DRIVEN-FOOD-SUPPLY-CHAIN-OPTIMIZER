@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { UserButton } from '@clerk/nextjs'
 import { cn } from '@/lib/utils'
-import { Package, BarChart3, ShoppingCart, Home, Settings, ImageIcon, Zap } from 'lucide-react'
+import { Package, BarChart3, ShoppingCart, Home, Settings, ImageIcon, Zap, Shield, UserPlus } from 'lucide-react'
 
 export default function DashboardNav() {
   const pathname = usePathname()
@@ -16,6 +16,12 @@ export default function DashboardNav() {
     { href: '/dashboard/predictions', label: 'Predictions', icon: ImageIcon },
     { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart3 },
     { href: '/dashboard/settings', label: 'Settings', icon: Settings },
+  ]
+
+  // Admin-only links
+  const adminLinks = [
+    { href: '/admin/vendors', label: 'Vendor Management', icon: UserPlus },
+    { href: '/admin/dashboard', label: 'Admin Dashboard', icon: Shield },
   ]
 
   return (
@@ -35,6 +41,7 @@ export default function DashboardNav() {
 
       {/* Navigation */}
       <nav className="flex-1 space-y-1 p-4 overflow-y-auto">
+        {/* Regular user links */}
         {links.map(({ href, label, icon: Icon }) => {
           const isActive = pathname === href
           return (
@@ -56,6 +63,31 @@ export default function DashboardNav() {
             </Link>
           )
         })}
+
+        {/* Admin links - will be conditionally rendered client-side based on user role */}
+        <div id="admin-links-container" className="space-y-1">
+          {adminLinks.map(({ href, label, icon: Icon }) => {
+            const isActive = pathname === href
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={cn(
+                  'flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-smooth group relative hidden admin-link',
+                  isActive
+                    ? 'gradient-primary text-white shadow-lg'
+                    : 'text-foreground hover:bg-accent/50'
+                )}
+              >
+                <Icon className={cn('h-5 w-5', isActive && 'animate-pulse')} />
+                <span>{label}</span>
+                {isActive && (
+                  <div className="absolute right-3 h-2 w-2 rounded-full bg-white animate-pulse" />
+                )}
+              </Link>
+            )
+          })}
+        </div>
       </nav>
 
       {/* Footer */}

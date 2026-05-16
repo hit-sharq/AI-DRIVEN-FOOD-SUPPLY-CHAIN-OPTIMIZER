@@ -1,6 +1,7 @@
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
 import { NextRequest, NextResponse } from 'next/server'
+import cloudinary from '@/lib/cloudinary'
 
 export async function POST(req: NextRequest) {
   try {
@@ -27,15 +28,34 @@ export async function POST(req: NextRequest) {
       include: { vendor: true },
     })
 
-    if (!product || product.vendor.clerkUserId !== userId) {
+    if (!product || product.vendor.userId !== userId) {
       return NextResponse.json(
         { error: 'Product not found or unauthorized' },
         { status: 404 }
       )
     }
 
+    // Upload image to Cloudinary
+    const bytes = await file.arrayBuffer()
+    const buffer = Buffer.from(bytes)
+
+    const uploadResult = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: 'foodoptim/predictions',
+          use_filename: true,
+          unique_filename: true,
+        },
+        (error, result) => {
+          if (error) reject(error)
+          else resolve(result)
+        }
+      )
+      uploadStream.end(buffer)
+    }) as any
+
     // Mock shelf-life prediction based on product category
-    const predictions = {
+    const predictions: Record<string, { min: number; max: number }> = {
       Vegetables: { min: 3, max: 10 },
       Fruits: { min: 5, max: 14 },
       Grains: { min: 30, max: 180 },
@@ -47,22 +67,30 @@ export async function POST(req: NextRequest) {
     }
 
     const categoryPrediction = predictions[product.category as keyof typeof predictions] || predictions.Other
-    const randomShelfLife = Math.floor(
+    const shelfLife = Math.floor(
       Math.random() * (categoryPrediction.max - categoryPrediction.min + 1) + categoryPrediction.min
     )
 
-    // Calculate expiry date
-    const expiryDate = new Date()
-    expiryDate.setDate(expiryDate.getDate() + randomShelfLife)
+    // Build rawPrediction JSON
+    const rawData = {
+      category: product.category,
+      shelfLife,
+      confidence: Math.random() * 0.2 + 0.80,
+    }
 
     // Create prediction record
     const prediction = await prisma.prediction.create({
       data: {
+        userId,
         productId,
-        shelfLifeDays: randomShelfLife,
-        expiryDate,
-        confidence: Math.floor(Math.random() * 20 + 80), // 80-99% confidence
-        imageUrl: `https://placeholder-image-${Date.now()}.jpg`,
+        imageUrl: uploadResult.secure_url,
+        shelfLife,
+        quality: shelfLife > 7 ? 'Good' : shelfLife > 3 ? 'Fair' : 'Poor',
+        ripeness: 'Ripe',
+        moldPresence: false,
+        bruises: Math.random() > 0.7,
+        confidence: Math.floor(Math.random() * 20 + 80) / 100,
+        rawPrediction: JSON.stringify(rawData),
       },
     })
 
@@ -87,7 +115,7 @@ export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams
     const productId = searchParams.get('productId')
 
-    let where: any = {}
+    let where: any = { user: { userId } }
 
     if (productId) {
       // Verify product belongs to user
@@ -96,7 +124,7 @@ export async function GET(req: NextRequest) {
         include: { vendor: true },
       })
 
-      if (!product || product.vendor.clerkUserId !== userId) {
+      if (!product || product.vendor.userId !== userId) {
         return NextResponse.json(
           { error: 'Product not found or unauthorized' },
           { status: 404 }
@@ -104,22 +132,6 @@ export async function GET(req: NextRequest) {
       }
 
       where.productId = productId
-    } else {
-      // Get all predictions for user's products
-      const vendor = await prisma.vendor.findUnique({
-        where: { clerkUserId: userId },
-      })
-
-      if (!vendor) {
-        return NextResponse.json(
-          { error: 'Vendor not found' },
-          { status: 404 }
-        )
-      }
-
-      where.product = {
-        vendorId: vendor.id,
-      }
     }
 
     const predictions = await prisma.prediction.findMany({

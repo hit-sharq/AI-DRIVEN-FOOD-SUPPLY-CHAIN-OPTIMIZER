@@ -11,31 +11,32 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { listingId, quantity, totalPrice } = body
+    const { listingId, quantity, pricePerUnit, totalPrice } = body
 
     if (!listingId || !quantity || totalPrice === undefined) {
       return NextResponse.json(
-        { error: 'Listing ID, quantity, and total price are required' },
+        { error: 'Listing ID, quantity, price per unit, and total price are required' },
         { status: 400 }
       )
     }
 
-    // Get buyer's vendor profile
-    const buyerVendor = await prisma.vendor.findUnique({
-      where: { clerkUserId: userId },
-    })
-
+    // Find the buyer's vendor profile (create a minimal one on-the-fly if missing)
+    let buyerVendor = await prisma.vendor.findUnique({ where: { userId } })
     if (!buyerVendor) {
-      return NextResponse.json(
-        { error: 'Vendor profile not found' },
-        { status: 404 }
-      )
+      buyerVendor = await prisma.vendor.create({
+        data: {
+          userId,
+          businessName: 'Pending Setup',
+          email: `pending-${userId}@local.invalid`,
+          location: 'Unknown',
+        },
+      })
     }
 
-    // Get listing details
+    // Get listing details (price and quantity)
     const listing = await prisma.listing.findUnique({
       where: { id: listingId },
-      include: { product: { include: { vendor: true } } },
+      include: { product: true },
     })
 
     if (!listing) {
@@ -53,13 +54,16 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    const effectivePricePerUnit = pricePerUnit ?? listing.pricePerUnit
+
     // Create transaction
     const transaction = await prisma.transaction.create({
       data: {
         listingId,
         buyerId: buyerVendor.id,
-        sellerId: listing.product.vendor.id,
+        vendorId: listing.vendorId,
         quantity,
+        pricePerUnit: effectivePricePerUnit,
         totalPrice,
         status: 'COMPLETED',
       },
@@ -88,7 +92,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error('[v0] Error creating transaction:', error)
     return NextResponse.json(
-      { error: 'Failed to create transaction' },
+      { error: 'Failed to process transaction' },
       { status: 500 }
     )
   }
@@ -102,10 +106,8 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get user's vendor profile
-    const vendor = await prisma.vendor.findUnique({
-      where: { clerkUserId: userId },
-    })
+    // Find the user's vendor profile
+    const vendor = await prisma.vendor.findUnique({ where: { userId } })
 
     if (!vendor) {
       return NextResponse.json(
@@ -114,10 +116,10 @@ export async function GET() {
       )
     }
 
-    // Get transactions as buyer or seller
+    // Get transactions where user is buyer or seller
     const transactions = await prisma.transaction.findMany({
       where: {
-        OR: [{ buyerId: vendor.id }, { sellerId: vendor.id }],
+        OR: [{ buyerId: vendor.id }, { vendorId: vendor.id }],
       },
       include: {
         listing: {

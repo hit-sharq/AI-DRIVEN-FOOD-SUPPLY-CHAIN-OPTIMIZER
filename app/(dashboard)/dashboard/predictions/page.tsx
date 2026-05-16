@@ -20,12 +20,15 @@ interface Product {
 
 interface Prediction {
   id: string
-  shelfLifeDays: number
-  expiryDate: string
-  confidence: number
+  shelfLife: number | null
+  quality: string | null
+  confidence: number | null
   product: {
     name: string
+    id: string
   }
+  imageUrl?: string
+  createdAt: string
 }
 
 export default function PredictionsPage() {
@@ -108,14 +111,11 @@ export default function PredictionsPage() {
     }
   }
 
-  const getExpiryStatus = (expiryDate: string) => {
-    const daysUntilExpiry = Math.floor(
-      (new Date(expiryDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
-    )
-
-    if (daysUntilExpiry < 0) return { label: 'Expired', color: 'text-red-600' }
-    if (daysUntilExpiry < 2) return { label: 'Critical', color: 'text-orange-600' }
-    return { label: 'Good', color: 'text-green-600' }
+  const getExpiryStatus = (shelfLife: number | null) => {
+    if (shelfLife === null) return { label: 'Unknown', color: 'text-gray-500' }
+    if (shelfLife < 0) return { label: 'Expired', color: 'text-red-600' }
+    if (shelfLife < 2) return { label: 'Critical', color: 'text-orange-600' }
+    return { label: shelfLife < 5 ? 'Expiring Soon' : 'Good', color: shelfLife < 5 ? 'text-amber-600' : 'text-green-600' }
   }
 
   if (loading) {
@@ -205,57 +205,89 @@ export default function PredictionsPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {predictions.map((prediction) => {
-                const status = getExpiryStatus(prediction.expiryDate)
-                const expiryDate = new Date(prediction.expiryDate)
+                {predictions.map((prediction) => {
+                  const status = getExpiryStatus(prediction.shelfLife)
+                  const expiryDate = prediction.shelfLife != null
+                    ? new Date(Date.now() + prediction.shelfLife * 86_400_000)
+                    : null
 
-                return (
-                  <div
-                    key={prediction.id}
-                    className="border border-border rounded-lg p-4 space-y-3"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h4 className="font-medium">{prediction.product.name}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          Predicted on {new Date(prediction.createdAt || '').toLocaleDateString()}
-                        </p>
+                  return (
+                    <div
+                      key={prediction.id}
+                      className="border border-border rounded-lg p-4 space-y-4"
+                    >
+                      <div className="grid grid-cols-[180px_1fr] gap-4 items-start">
+                        {/* Image Preview */}
+                        <div className="aspect-[4/3] w-full rounded-lg border border-border overflow-hidden">
+                          {prediction.imageUrl ? (
+                            <img
+                              src={prediction.imageUrl}
+                              alt={`${prediction.product.name} prediction`}
+                              className="object-cover w-full h-full"
+                            />
+                          ) : (
+                            <div className="flex h-full items-center justify-center bg-gray-100">
+                              <Upload className="h-6 w-6 text-muted-foreground" />
+                              <span className="ml-2 text-sm">No Image</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Details */}
+                        <div className="space-y-2">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h4 className="font-medium">{prediction.product.name}</h4>
+                              <p className="text-sm text-muted-foreground">
+                                Predicted on {new Date(prediction.createdAt || '').toLocaleDateString()}
+                              </p>
+                            </div>
+                            <span className={`text-sm font-medium ${status.color}`}>
+                              {status.label}
+                            </span>
+                          </div>
+
+                          {prediction.quality && (
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <AlertCircle size={14} />
+                              <span>Quality: {prediction.quality}</span>
+                            </div>
+                          )}
+
+                          <div className="grid grid-cols-3 gap-4 pt-2 border-t border-border">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2 text-muted-foreground">
+                                <Calendar size={16} />
+                                <span className="text-xs">Shelf Life</span>
+                              </div>
+                               <p className="font-medium">
+                                 {prediction.shelfLife != null ? `${prediction.shelfLife} days` : 'N/A'}
+                               </p>
+                            </div>
+
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2 text-muted-foreground">
+                                <TrendingDown size={16} />
+                                <span className="text-xs">Expires</span>
+                              </div>
+                              <p className="font-medium">
+                                {expiryDate ? expiryDate.toLocaleDateString() : 'N/A'}
+                              </p>
+                            </div>
+
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2 text-muted-foreground">
+                                <AlertCircle size={16} />
+                                <span className="text-xs">Confidence</span>
+                              </div>
+                              <p className="font-medium">{prediction.confidence}%</p>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <span className={`text-sm font-medium ${status.color}`}>
-                        {status.label}
-                      </span>
                     </div>
-
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Calendar size={16} />
-                          <span className="text-xs">Shelf Life</span>
-                        </div>
-                        <p className="font-medium">{prediction.shelfLifeDays} days</p>
-                      </div>
-
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <TrendingDown size={16} />
-                          <span className="text-xs">Expires</span>
-                        </div>
-                        <p className="font-medium">
-                          {expiryDate.toLocaleDateString()}
-                        </p>
-                      </div>
-
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <AlertCircle size={16} />
-                          <span className="text-xs">Confidence</span>
-                        </div>
-                        <p className="font-medium">{prediction.confidence}%</p>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
+                  )
+                })}
             </div>
           )}
         </CardContent>

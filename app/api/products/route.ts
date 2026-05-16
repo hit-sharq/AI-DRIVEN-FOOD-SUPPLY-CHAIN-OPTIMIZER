@@ -1,6 +1,8 @@
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
 import { NextRequest, NextResponse } from 'next/server'
+import cloudinary from '@/lib/cloudinary'
+import fs from 'fs'
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,8 +12,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const body = await req.json()
-    const { name, category, unit, description } = body
+    const formData = await req.formData()
+    const name = formData.get('name') as string
+    const category = formData.get('category') as string
+    const unit = formData.get('unit') as string
+    const description = formData.get('description') as string || undefined
+    const imageFile = formData.get('image') as File
 
     if (!name || !category || !unit) {
       return NextResponse.json(
@@ -22,7 +28,7 @@ export async function POST(req: NextRequest) {
 
     // Get vendor for this user
     const vendor = await prisma.vendor.findUnique({
-      where: { clerkUserId: userId },
+      where: { userId: userId },
     })
 
     if (!vendor) {
@@ -32,6 +38,33 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // Upload image to Cloudinary if provided
+    let imageUrl: string | undefined
+    if (imageFile) {
+      // Convert File to Buffer for Cloudinary upload
+      const bytes = await imageFile.arrayBuffer()
+      const buffer = Buffer.from(bytes)
+      
+      // Upload to Cloudinary
+      const uploadResult = await new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          {
+            folder: 'foodoptim/products',
+            use_filename: true,
+            unique_filename: true,
+          },
+          (error, result) => {
+            if (error) reject(error)
+            else resolve(result)
+          }
+        )
+        
+        uploadStream.end(buffer)
+      }) as any
+      
+      imageUrl = uploadResult.secure_url
+    }
+
     const product = await prisma.product.create({
       data: {
         vendorId: vendor.id,
@@ -39,6 +72,7 @@ export async function POST(req: NextRequest) {
         category,
         unit,
         description,
+        imageUrl,
       },
     })
 
@@ -61,7 +95,7 @@ export async function GET() {
     }
 
     const vendor = await prisma.vendor.findUnique({
-      where: { clerkUserId: userId },
+      where: { userId: userId },
     })
 
     if (!vendor) {

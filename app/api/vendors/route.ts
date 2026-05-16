@@ -11,35 +11,26 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { name, location, contactEmail, contactPhone, description } = body
+    const { businessName, contactName, email, phone, location } = body
 
-    if (!name || !location) {
+    if (!businessName || !location || !email) {
       return NextResponse.json(
-        { error: 'Name and location are required' },
+        { error: 'Business name, email, and location are required' },
         { status: 400 }
       )
     }
 
-    // Check if vendor already exists for this user
-    const existingVendor = await prisma.vendor.findUnique({
-      where: { clerkUserId: userId },
-    })
-
-    if (existingVendor) {
-      return NextResponse.json(
-        { error: 'Vendor profile already exists' },
-        { status: 400 }
-      )
-    }
+    // Upsert: remove stale duplicates (there should be at most one per user)
+    await prisma.vendor.deleteMany({ where: { userId } })
 
     const vendor = await prisma.vendor.create({
       data: {
-        clerkUserId: userId,
-        name,
+        userId,
+        businessName,
+        contactName: contactName ?? null,
+        email,
+        phone: phone ?? null,
         location,
-        contactEmail,
-        contactPhone,
-        description,
       },
     })
 
@@ -62,7 +53,7 @@ export async function GET() {
     }
 
     const vendor = await prisma.vendor.findUnique({
-      where: { clerkUserId: userId },
+      where: { userId },
       include: {
         products: true,
         listings: true,

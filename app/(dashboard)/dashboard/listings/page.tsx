@@ -32,7 +32,7 @@ export default function ListingsPage() {
   useEffect(() => {
     async function fetchListings() {
       try {
-        const res = await fetch('/api/listings?userId=current')
+        const res = await fetch('/api/listings')
         if (res.ok) {
           const data = await res.json()
           setListings(data)

@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Upload } from 'lucide-react'
 
 const PRODUCT_CATEGORIES = [
   'Vegetables',
@@ -36,6 +37,8 @@ export default function NewProductPage() {
     unit: '',
     description: '',
   })
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [uploading, setUploading] = useState(false)
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -48,15 +51,37 @@ export default function NewProductPage() {
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setSelectedFile(file)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (!formData.name || !formData.category || !formData.unit) {
+      alert('Please fill in all required fields')
+      return
+    }
+
     setLoading(true)
 
     try {
+      const formDataObj = new FormData()
+      formDataObj.append('name', formData.name)
+      formDataObj.append('category', formData.category)
+      formDataObj.append('unit', formData.unit)
+      formDataObj.append('description', formData.description)
+      
+      if (selectedFile) {
+        formDataObj.append('image', selectedFile)
+      }
+
       const res = await fetch('/api/products', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: formDataObj,
       })
 
       if (res.ok) {
@@ -157,11 +182,39 @@ export default function NewProductPage() {
               />
             </div>
 
+            {/* Image Upload */}
+            <div className="space-y-2">
+              <Label htmlFor="product-image">Product Image (Optional)</Label>
+              <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
+                <input
+                  type="file"
+                  accept="image/*"
+                  id="product-image"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+                <label htmlFor="product-image" className="cursor-pointer">
+                  <Upload className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+                  <p className="text-sm font-medium">
+                    {selectedFile ? selectedFile.name : 'Click to upload or drag and drop'}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    PNG, JPG, GIF up to 10MB
+                  </p>
+                </label>
+              </div>
+              {selectedFile && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Selected: {selectedFile.name}
+                </p>
+              )}
+            </div>
+
             {/* Actions */}
             <div className="flex gap-4">
               <Button
                 type="submit"
-                disabled={loading}
+                disabled={loading || uploading}
                 className="flex-1"
               >
                 {loading ? 'Creating...' : 'Create Product'}
