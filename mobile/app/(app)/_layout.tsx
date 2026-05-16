@@ -20,6 +20,11 @@ export default function AppLayout() {
       <Stack.Screen name="dashboard" options={{ title: 'Dashboard' }} />
       <Stack.Screen name="marketplace" options={{ title: 'Marketplace' }} />
       <Stack.Screen name="predictions" options={{ title: 'Predictions' }} />
+      <Stack.Screen name="products" options={{ title: 'My Products' }} />
+      <Stack.Screen name="products/new" options={{ title: 'Add Product' }} />
+      <Stack.Screen name="listings" options={{ title: 'My Listings' }} />
+      <Stack.Screen name="listings/new" options={{ title: 'New Listing' }} />
+      <Stack.Screen name="transactions" options={{ title: 'Transactions' }} />
       <Stack.Screen name="profile" options={{ title: 'Profile' }} />
     </Stack>
   )

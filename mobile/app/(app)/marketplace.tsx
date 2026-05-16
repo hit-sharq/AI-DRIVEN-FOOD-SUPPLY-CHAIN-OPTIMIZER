@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native'
-import api from '../../lib/api'
+import { get, post } from '../../lib/api'
 
 interface Vendor {
   id: string
@@ -58,8 +58,8 @@ export default function MarketplaceScreen() {
   const fetchData = async () => {
     try {
       const [listingsRes, predictionsRes] = await Promise.all([
-        api.get('/listings'),
-        api.get('/predictions'),
+        get('/listings'),
+        get('/predictions'),
       ])
       const activeListings = listingsRes.data.filter(
         (l: Listing) => l.status === 'ACTIVE'

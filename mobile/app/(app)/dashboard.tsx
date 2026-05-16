@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native'
-import api from '../../lib/api'
+import { get } from '../../lib/api'
 
 interface Stats {
   products: number
@@ -37,8 +37,8 @@ export default function DashboardScreen() {
   const fetchStats = async () => {
     try {
       const [productsRes, listingsRes] = await Promise.all([
-        api.get('/products'),
-        api.get('/listings'),
+        get('/products'),
+        get('/listings'),
       ])
       setStats({
         products: productsRes.data.length || 0,
@@ -60,9 +60,24 @@ export default function DashboardScreen() {
       onPress: () => router.push('/(app)/marketplace'),
     },
     {
+      title: 'My Products',
+      icon: '📦',
+      onPress: () => router.push('/(app)/products'),
+    },
+    {
       title: 'Upload Predictions',
       icon: '📸',
       onPress: () => router.push('/(app)/predictions'),
+    },
+    {
+      title: 'New Listing',
+      icon: '🏷️',
+      onPress: () => router.push('/(app)/listings/new'),
+    },
+    {
+      title: 'Transaction History',
+      icon: '💳',
+      onPress: () => router.push('/(app)/transactions'),
     },
     {
       title: 'View My Profile',
@@ -107,17 +122,19 @@ export default function DashboardScreen() {
         {/* Quick Actions */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Quick Actions</Text>
-          {quickActions.map((action, index) => (
-            <TouchableOpacity
-              key={index}
-              style={styles.actionButton}
-              onPress={action.onPress}
-            >
-              <Text style={styles.actionIcon}>{action.icon}</Text>
-              <Text style={styles.actionTitle}>{action.title}</Text>
-              <Text style={styles.actionArrow}>›</Text>
-            </TouchableOpacity>
-          ))}
+          <View style={styles.actionsGrid}>
+            {quickActions.map((action, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.actionButton}
+                onPress={action.onPress}
+              >
+                <Text style={styles.actionIcon}>{action.icon}</Text>
+                <Text style={styles.actionTitle}>{action.title}</Text>
+                <Text style={styles.actionArrow}>›</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -125,30 +142,12 @@ export default function DashboardScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-  },
-  header: {
-    marginBottom: 24,
-  },
-  greeting: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 4,
-  },
-  userName: {
-    fontSize: 28,
-    fontWeight: 'bold',
-  },
-  loader: {
-    marginTop: 32,
-  },
+  container: { flex: 1, backgroundColor: '#fff' },
+  content: { flex: 1, paddingHorizontal: 16, paddingTop: 16 },
+  header: { marginBottom: 24 },
+  greeting: { fontSize: 14, color: '#666', marginBottom: 4 },
+  userName: { fontSize: 28, fontWeight: 'bold' },
+  loader: { marginTop: 32 },
   statsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -162,23 +161,15 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
   },
-  statValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 4,
+  statValue: { fontSize: 24, fontWeight: 'bold', marginBottom: 4 },
+  statLabel: { fontSize: 12, color: '#666' },
+  section: { marginBottom: 32 },
+  actionsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
   },
-  statLabel: {
-    fontSize: 12,
-    color: '#666',
-  },
-  section: {
-    marginBottom: 32,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 12,
-  },
+  sectionTitle: { fontSize: 16, fontWeight: '600', marginBottom: 12 },
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -189,17 +180,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e5e7eb',
   },
-  actionIcon: {
-    fontSize: 20,
-    marginRight: 12,
-  },
-  actionTitle: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  actionArrow: {
-    fontSize: 20,
-    color: '#9ca3af',
-  },
+  actionIcon: { fontSize: 20, marginRight: 12 },
+  actionTitle: { flex: 1, fontSize: 16, fontWeight: '500' },
+  actionArrow: { fontSize: 20, color: '#9ca3af' },
 })

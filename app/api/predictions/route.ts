@@ -2,6 +2,7 @@ import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
 import { NextRequest, NextResponse } from 'next/server'
 import cloudinary from '@/lib/cloudinary'
+import { predictShelfLife } from '@/lib/aiService'
 
 export async function POST(req: NextRequest) {
   try {
@@ -54,29 +55,8 @@ export async function POST(req: NextRequest) {
       uploadStream.end(buffer)
     }) as any
 
-    // Mock shelf-life prediction based on product category
-    const predictions: Record<string, { min: number; max: number }> = {
-      Vegetables: { min: 3, max: 10 },
-      Fruits: { min: 5, max: 14 },
-      Grains: { min: 30, max: 180 },
-      Dairy: { min: 1, max: 21 },
-      Meat: { min: 1, max: 7 },
-      Seafood: { min: 1, max: 3 },
-      Spices: { min: 180, max: 365 },
-      Other: { min: 7, max: 30 },
-    }
-
-    const categoryPrediction = predictions[product.category as keyof typeof predictions] || predictions.Other
-    const shelfLife = Math.floor(
-      Math.random() * (categoryPrediction.max - categoryPrediction.min + 1) + categoryPrediction.min
-    )
-
-    // Build rawPrediction JSON
-    const rawData = {
-      category: product.category,
-      shelfLife,
-      confidence: Math.random() * 0.2 + 0.80,
-    }
+    // Use AI service for shelf-life prediction
+    const aiPrediction = await predictShelfLife(buffer, product.category);
 
     // Create prediction record
     const prediction = await prisma.prediction.create({
@@ -84,13 +64,13 @@ export async function POST(req: NextRequest) {
         userId,
         productId,
         imageUrl: uploadResult.secure_url,
-        shelfLife,
-        quality: shelfLife > 7 ? 'Good' : shelfLife > 3 ? 'Fair' : 'Poor',
-        ripeness: 'Ripe',
-        moldPresence: false,
-        bruises: Math.random() > 0.7,
-        confidence: Math.floor(Math.random() * 20 + 80) / 100,
-        rawPrediction: JSON.stringify(rawData),
+        shelfLife: aiPrediction.shelfLife,
+        quality: aiPrediction.quality,
+        ripeness: aiPrediction.ripeness,
+        moldPresence: aiPrediction.moldPresence,
+        bruises: aiPrediction.bruises,
+        confidence: aiPrediction.confidence,
+        rawPrediction: JSON.stringify(aiPrediction.rawPrediction),
       },
     })
 

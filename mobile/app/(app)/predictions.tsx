@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
 } from 'react-native'
 import * as ImagePicker from 'expo-image-picker'
-import api from '../../lib/api'
+import { get, post } from '../../lib/api'
 
 interface Prediction {
   id: string
@@ -35,7 +35,7 @@ export default function PredictionsScreen() {
 
   const fetchPredictions = async () => {
     try {
-      const res = await api.get('/predictions')
+      const res = await get('/predictions')
       setPredictions(res.data)
     } catch (error) {
       console.error('Error fetching predictions:', error)
@@ -67,33 +67,26 @@ export default function PredictionsScreen() {
     setUploading(true)
     try {
       const formData = new FormData()
-      fetch(imageUri)
-        .then((res) => res.blob())
-        .then((blob) => {
-          formData.append('image', blob as any, 'photo.jpg')
-          return api.post('/predictions', formData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
-          })
-        })
-        .then((res) => {
-          setPredictions([res.data, ...predictions])
-        })
-        .catch((err) => {
-          console.error('Upload error:', err)
-          // Fallback: add mock prediction for demo
-          const newPrediction: Prediction = {
-            id: Date.now().toString(),
-            shelfLife: 5,
-            quality: 'Good',
-            confidence: 0.88,
-            product: { id: '', name: 'Uploaded Product' },
-            createdAt: new Date().toISOString(),
-          }
-          setPredictions([newPrediction, ...predictions])
-        })
-        .finally(() => setUploading(false))
+      const res = await fetch(imageUri)
+      const blob = await res.blob()
+      // @ts-expect-error react-native Blob → form-data requires @types/form-data at runtime
+      formData.append('image', blob, 'photo.jpg')
+
+      const res2 = await post('/predictions', formData as unknown as Record<string, unknown>)
+      setPredictions([res2.data, ...predictions])
     } catch (err) {
-      console.error('Prediction error:', err)
+      console.error('Upload error:', err)
+      // Fallback: add mock prediction for demo
+      const newPrediction: Prediction = {
+        id: Date.now().toString(),
+        shelfLife: 5,
+        quality: 'Good',
+        confidence: 0.88,
+        product: { id: '', name: 'Uploaded Product' },
+        createdAt: new Date().toISOString(),
+      }
+      setPredictions([newPrediction, ...predictions])
+    } finally {
       setUploading(false)
     }
   }
